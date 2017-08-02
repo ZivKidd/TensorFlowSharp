@@ -11,6 +11,7 @@ using System.IO;
 using System.Collections.Generic;
 using Learn.Mnist;
 using System.Linq;
+using TensorFlowSharp.Training;
 
 namespace SampleTest
 {
@@ -283,23 +284,58 @@ namespace SampleTest
 			 	2.827,3.465,1.65,2.904,2.42,2.94,1.3
 			};
 			var n_samples = train_x.Length;
-			using (var g = new TFGraph ()) {
-				var s = new TFSession (g);
-		 		var rng = new Random ();
-				// tf Graph Input
 
-				var X = g.Placeholder (TFDataType.Float);
-				var Y = g.Placeholder (TFDataType.Float);
-				var W = g.Variable (g.Const (rng.Next ()), operName: "weight");
-				var b = g.Variable (g.Const (rng.Next ()), operName: "bias");
-				var pred = g.Add (g.Mul (X, W), b);
+            using (var g = new TFGraph())
+            {
+                var s = new TFSession(g);
+                var rng = new Random();
+                // tf Graph Input
 
-				var cost = g.Div (g.ReduceSum (g.Pow (g.Sub (pred, Y), g.Const (2))), g.Mul (g.Const (2), g.Const (n_samples)));
+                var X = g.Placeholder(TFDataType.Float);
+                var Y = g.Placeholder(TFDataType.Float);
+                var W = g.Variable(g.Const(rng.Next()), operName: "weight");
+                var b = g.Variable(g.Const(rng.Next()), operName: "bias");
+                var pred = g.Add(g.Mul(X, W), b);
 
-				// STuck here: TensorFlow bindings need to surface gradient support
-				// waiting on Google for this
-				// https://github.com/migueldeicaza/TensorFlowSharp/issues/25
-			}
+                var cost = g.Div(g.ReduceSum(g.Pow(g.Sub(pred, Y), g.Const(2))), g.Mul(g.Const(2), g.Const(n_samples)));
+
+                // STuck here: TensorFlow bindings need to surface gradient support
+                // waiting on Google for this
+                // https://github.com/migueldeicaza/TensorFlowSharp/issues/25
+
+                // work in progress.
+
+                var optimizer = new GradientDescentOptimizer(learning_rate).Minimize(cost);
+
+                //var init = g.GetGlobalVariablesInitializer();
+                //s.GetRunner().Run(init);
+
+                var observations = train_x.Zip(train_y, (x, y) => new { X = x, Y = y }).ToArray();
+                var runner = s.GetRunner();
+                for (int epoch = 0; epoch < training_epochs; epoch++)
+                {
+                    foreach (var observation in observations)
+                    {
+                        runner
+                        .AddInput(X, observation.X)
+                        .AddInput(Y, observation.Y)
+                        .Run(optimizer);
+                    }
+
+                    // Display logs per epoch step
+                    if ((epoch + 1) % display_step == 0)
+                    {
+                        var c = runner
+                            .AddInput(X, train_x)
+                            .AddInput(Y, train_y)
+                            .Run(cost);
+
+                        Console.WriteLine($"Epoch: {epoch + 1}, cost={c}, W={runner.Run(W)}, b={runner.Run(b)}");
+                    }
+                }
+                
+                // end work in progress
+            }
 		}
 #endif
 		#endregion

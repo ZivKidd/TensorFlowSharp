@@ -92,9 +92,9 @@ namespace TensorFlowSharp.Training
     /// </summary>
     public abstract class Optimizer
     {
-        bool m_useLocking;
-        string m_name;
-        HashSet<TFDataType> m_validDTypes = new HashSet<TFDataType> { TFDataType.BFloat16, TFDataType.Float, TFDataType.Double };
+        readonly bool m_useLocking;
+        readonly string m_name;
+        readonly HashSet<TFDataType> m_validDTypes = new HashSet<TFDataType> { TFDataType.BFloat16, TFDataType.Float, TFDataType.Double };
 
         public Optimizer(bool useLocking, string name)
         {

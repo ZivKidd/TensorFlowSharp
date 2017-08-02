@@ -5,7 +5,7 @@ namespace TensorFlowSharp.Training
 {
     public class GradientDescentOptimizer : Optimizer
     {
-        double m_learningRate;
+        readonly double m_learningRate;
 
         public GradientDescentOptimizer(double learningRate, bool useLocking = false, string name = "GradientDescent")
             : base(useLocking, name)
