@@ -69,6 +69,12 @@
     <Compile Include="OperationsExtras.cs" />
     <Compile Include="Buffer.cs" />
     <Compile Include="Tensor.cs" />
+    <Compile Include="Training\AggregationMethod.cs" />
+    <Compile Include="Training\GateGradients.cs" />
+    <Compile Include="Training\GradientDescentOptimizer.cs" />
+    <Compile Include="Training\GraphKey.cs" />
+    <Compile Include="Training\IOptimizableParameter.cs" />
+    <Compile Include="Training\Optimizer.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Packaging">
@@ -79,5 +85,6 @@
       <Version>4.3.1</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
