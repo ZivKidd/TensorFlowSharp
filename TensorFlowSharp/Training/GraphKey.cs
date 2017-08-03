@@ -51,56 +51,118 @@
     /// </summary>
     public static class GraphKey
     {
-        // Key to collect Variable objects that are global (shared across machines).
-        // Default collection for all variables, except local ones.
+        /// <summary>
+        /// Key to collect Variable objects that are global(shared across machines).
+        /// Default collection for all variables, except local ones.
+        /// </summary>
         public static string GLOBAL_VARIABLES = "variables";
-        // Key to collect local variables that are local to the machine and are not
-        // saved/restored.
+
+        /// <summary>
+        /// Key to collect local variables that are local to the machine and are not
+        /// saved/restored.
+        /// </summary>
         public static string LOCAL_VARIABLES = "local_variables";
-        // Key to collect model variables defined by layers.
+
+        /// <summary>
+        /// Key to collect model variables defined by layers.
+        /// </summary>
         public static string MODEL_VARIABLES = "model_variables";
-        // Key to collect Variable objects that will be trained by the
-        // optimizers.
+
+        /// <summary>
+        /// Key to collect Variable objects that will be trained by the
+        /// optimizers.
+        /// </summary>
         public static string TRAINABLE_VARIABLES = "trainable_variables";
-        // Key to collect summaries.
+
+        /// <summary>
+        /// Key to collect summaries.
+        /// </summary>
         public static string SUMMARIES = "summaries";
-        // Key to collect QueueRunners.
+
+        /// <summary>
+        /// Key to collect QueueRunners.
+        /// </summary>
         public static string QUEUE_RUNNERS = "queue_runners";
-        // Key to collect table initializers.
+
+        /// <summary>
+        /// Key to collect table initializers.
+        /// </summary>
         public static string TABLE_INITIALIZERS = "table_initializer";
-        // Key to collect asset filepaths. An asset represents an external resource
-        // like a vocabulary file.
+
+        /// <summary>
+        /// Key to collect asset filepaths. An asset represents an external resource
+        /// like a vocabulary file.
+        /// </summary>
         public static string ASSET_FILEPATHS = "asset_filepaths";
-        // Key to collect Variable objects that keep moving averages.
+
+        /// <summary>
+        /// Key to collect Variable objects that keep moving averages. 
+        /// </summary>
         public static string MOVING_AVERAGE_VARIABLES = "moving_average_variables";
-        // Key to collect regularization losses at graph construction.
+
+        /// <summary>
+        /// Key to collect regularization losses at graph construction.
+        /// </summary>
         public static string REGULARIZATION_LOSSES = "regularization_losses";
-        // Key to collect concatenated sharded variables.
+
+        /// <summary>
+        /// Key to collect concatenated sharded variables. 
+        /// </summary>
         public static string CONCATENATED_VARIABLES = "concatenated_variables";
-        // Key to collect savers.
+
+        /// <summary>
+        /// Key to collect savers.
+        /// </summary>
         public static string SAVERS = "savers";
-        // Key to collect weights
+
+        /// <summary>
+        /// Key to collect weights
+        /// </summary>
         public static string WEIGHTS = "weights";
-        // Key to collect biases
+
+        /// <summary>
+        /// Key to collect biases
+        /// </summary>
         public static string BIASES = "biases";
-        // Key to collect activations
+
+        /// <summary>
+        /// Key to collect activations
+        /// </summary>
         public static string ACTIVATIONS = "activations";
-        // Key to collect update_ops
+
+        /// <summary>
+        /// Key to collect update_ops
+        /// </summary>
         public static string UPDATE_OPS = "update_ops";
-        // Key to collect losses
+
+        /// <summary>
+        /// Key to collect losses
+        /// </summary>
         public static string LOSSES = "losses";
-        // Key to collect BaseSaverBuilder.SaveableObject instances for checkpointing.
+
+        /// <summary>
+        /// Key to collect BaseSaverBuilder.SaveableObject instances for checkpointing.
+        /// </summary>
         public static string SAVEABLE_OBJECTS = "saveable_objects";
-        // Key to collect all shared resources used by the graph which need to be
-        // initialized once per cluster.
+
+        /// <summary>
+        /// Key to collect all shared resources used by the graph which need to be
+        /// initialized once per cluster.
+        /// </summary>
         public static string RESOURCES = "resources";
-        // Key to collect all shared resources used in this graph which need to be
-        // initialized once per session.
+
+        /// <summary>
+        /// Key to collect all shared resources used in this graph which need to be
+        /// initialized once per session.
+        /// </summary>
         public static string LOCAL_RESOURCES = "local_resources";
-        // Trainable resource-style variables.
+
+        /// <summary>
+        /// Trainable resource-style variables.
+        /// </summary>
         public static string TRAINABLE_RESOURCE_VARIABLES = "trainable_resource_variables";
 
-        // Key to indicate various ops.
+        // Keys to indicate various ops.
         public static string INIT_OP = "init_op";
         public static string LOCAL_INIT_OP = "local_init_op";
         public static string READY_OP = "ready_op";

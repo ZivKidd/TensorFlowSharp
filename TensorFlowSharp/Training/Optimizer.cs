@@ -467,6 +467,8 @@ namespace TensorFlowSharp.Training
 
         #region Utility methods for subclasses
 
+        // TODO: Add utility methods as they become necesarry for the sub-class optimizes.
+
         //public static def _get_processor(v)
         //{
         //    """The processor of v."""
