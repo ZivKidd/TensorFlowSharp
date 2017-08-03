@@ -19,7 +19,7 @@ namespace TensorFlowSharp.Training
     /// # Add Ops to the graph to minimize a cost by updating a list of variables.
     /// # "cost" is a Tensor, and the list of variables contains tf.Variable
     /// # objects.
-    /// opt_op = opt.minimize(cost, var_list=<list of variables>)
+    /// opt_op = opt.minimize(cost, var_list=list of variables)
     /// ```
     /// 
     /// In the training program you will just have to run the returned Op.
@@ -46,7 +46,7 @@ namespace TensorFlowSharp.Training
     /// opt = GradientDescentOptimizer(learning_rate = 0.1)
     /// 
     /// # Compute the gradients for a list of variables.
-    /// grads_and_vars = opt.compute_gradients(loss, < list of variables >)
+    /// grads_and_vars = opt.compute_gradients(loss, list of variables)
     /// 
     /// # grads_and_vars is a list of tuples (gradient, variable).  Do whatever you
     /// # need to the 'gradient' part, for example cap them, etc.
@@ -96,6 +96,16 @@ namespace TensorFlowSharp.Training
         readonly string m_name;
         readonly HashSet<TFDataType> m_validDTypes = new HashSet<TFDataType> { TFDataType.BFloat16, TFDataType.Float, TFDataType.Double };
 
+        /// <summary>
+        /// Create a new Optimizer.
+        /// 
+        /// This must be called by the constructors of subclasses.
+        /// 
+        /// s</summary>
+        /// <param name="useLocking">Bool.If True apply use locks to prevent concurrent updates
+        /// to variables.</param>
+        /// <param name="name">A non-empty string.  The name to use for accumulators created
+        /// for the optimizer.</param>
         public Optimizer(bool useLocking, string name)
         {
             if (name == string.Empty) { throw new ArgumentException("Must specify the optimizer name"); }
@@ -104,6 +114,10 @@ namespace TensorFlowSharp.Training
             m_name = name;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string GetName()
         {
             return m_name;
@@ -139,7 +153,7 @@ namespace TensorFlowSharp.Training
             TFOutput grad_loss = default(TFOutput)) // TODO: Should grad_loss and global_step be TFTensor type?
         {
 
-            /*grads_and_vars = */ComputeGradients(loss, var_list, 
+            var grads_and_vars = ComputeGradients(loss, var_list, 
                 gate_gradients,
                 aggregation_method,
                 colocate_gradients_with_ops,
@@ -165,32 +179,20 @@ namespace TensorFlowSharp.Training
         /// for "variable".  Note that "gradient" can be a `Tensor`, an
         /// `IndexedSlices`, or `None` if there is no gradient for the
         /// given variable.
-        /// Args:
-        ///   loss: A Tensor containing the value to minimize.
-        ///   var_list: Optional list or tuple of `tf.Variable` to update to minimize
-        ///     `loss`.  Defaults to the list of variables collected in the graph
-        ///     under the key `GraphKey.TRAINABLE_VARIABLES`.
-        ///   gate_gradients: How to gate the computation of gradients.Can be
-        ///     `GATE_NONE`, `GATE_OP`, or `GATE_GRAPH`.
-        ///   aggregation_method: Specifies the method used to combine gradient terms.
-        ///     Valid values are defined in the class `AggregationMethod`.
-        ///   colocate_gradients_with_ops: If True, try colocating gradients with
-        ///     the corresponding op.
-        ///   grad_loss: Optional.A `Tensor` holding the gradient computed for `loss`.
-        /// Returns:
-        ///   A list of (gradient, variable) pairs. Variable is always present, but
-        ///   gradient can be `None`.
-        /// Raises:
-        ///   TypeError: If `var_list` contains anything else than `Variable` objects.
-        ///   ValueError: If some arguments are invalid.
         /// </summary>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        /// <param name=""></param>
-        /// <param name=""></param>
+        /// <param name="loss">A `Tensor` containing the value to minimize.</param>
+        /// <param name="var_list">Optional list or tuple of `Variable` objects to update to
+        /// minimize `loss`.  Defaults to the list of variables collected in
+        /// the graph under the key `GraphKeys.TRAINABLE_VARIABLES`.</param>
+        /// <param name="gate_gradients">How to gate the computation of gradients.Can be
+        /// `GATE_NONE`, `GATE_OP`, or  `GATE_GRAPH`.</param>
+        /// <param name="aggregation_method"> Specifies the method used to combine gradient terms.
+        /// Valid values are defined in the class `AggregationMethod`.</param>
+        /// <param name="colocate_gradients_with_ops">If True, try colocating gradients with
+        /// the corresponding op.</param>
+        /// <param name="grad_loss">Optional.A `Tensor` holding the gradient computed for `loss`.</param>
+        /// <returns> A list of (gradient, variable) pairs. Variable is always present, but
+        /// gradient can be `None`.</returns>
         public List<Tuple<TFOutput, TFOutput>> ComputeGradients(TFOutput loss, List<TFOutput> var_list,
                         GateGradients gate_gradients = GateGradients.GATE_OP,
                         AggregationMethod aggregation_method = AggregationMethod.ADD_N, // in TensorFlow this is set to None, which corresponds to 0 and thereby AggregationMethod.Add_N
@@ -222,7 +224,7 @@ namespace TensorFlowSharp.Training
                 //    ops.get_collection(ops.GraphKeys.TRAINABLE_RESOURCE_VARIABLES))
             }
 
-            // TODO: Figure out if flatten is needed. Currently var_list is aways an array.
+            // TODO: Figure out if flatten is needed. Currently var_list is aways a list.
             // var_list = nest.flatten(var_list)
 
             // TODO: Figure out how to get the necesarry collection from the graph
@@ -233,27 +235,237 @@ namespace TensorFlowSharp.Training
             throw new NotImplementedException();
         }
 
-        public TFOperation ApplyGradients(List<Tuple<TFOutput, TFOutput>> grads_and_vars, 
+        /// <summary>
+        /// Apply gradients to variables.
+        /// This is the second part of `minimize()`. It returns an `Operation` that
+        /// applies gradients.
+
+        /// This is a default implementation of apply_gradients() that can be shared
+        /// by most optimizers.  It relies on the subclass implementing the following
+        /// methods: _create_slots(), _prepare(), _apply_dense(), and _apply_sparse().        
+        /// 
+        /// </summary>
+        /// <param name="grads_and_vars">List of(gradient, variable) pairs as returned by
+        ///     `compute_gradients()`.</param>
+        /// <param name="global_step">Optional `Variable` to increment by one after the
+        ///     variables have been updated.</param>
+        /// <param name="name">Optional name for the returned operation.Default to the
+        ///     name passed to the `Optimizer` constructor.</param>
+        /// <returns> An `Operation` that applies the specified gradients.If `global_step`
+        ///   was not None, that operation also increments `global_step`.</returns>
+        public virtual TFOperation ApplyGradients(List<Tuple<TFOutput, TFOutput>> grads_and_vars, 
             TFOutput global_step = default(TFOutput), 
             string name = null)
         {
             throw new NotImplementedException();
         }
 
-        protected abstract TFOutput ApplyDense(TFOutput grad, TFOutput var);
+        /// <summary>
+        /// Return a slot named `name` created for `var` by the Optimizer.
+        /// 
+        /// Some `Optimizer` subclasses use additional variables.For example
+        /// `Momentum` and `Adagrad` use variables to accumulate updates.This method
+        /// gives access to these `Variable` objects if for some reason you need them.
+        /// 
+        /// Use `get_slot_names()` to get the list of slot names created by the
+        /// `Optimizer`.
+        /// 
+        /// </summary>
+        /// <param name="var">A variable passed to `minimize()` or `apply_gradients()`.</param>
+        /// <param name="name">A string.</param>
+        /// <returns>The `Variable` for the slot if it was created, `None` otherwise.</returns>
+        public TFOutput GetSlot(TFOutput var, string name)
+        {
+            throw new NotImplementedException();
 
-        protected abstract TFOutput ResourceApplyDense(TFOutput grad, IntPtr handle);
+            //named_slots = self._slots.get(name, None)
+            //if not named_slots:
+            //            return None
+            //return named_slots.get(_var_key(var), None)
+        }
 
+        /// <summary>
+        /// Return a list of the names of slots created by the `Optimizer`.
+        /// See `get_slot()`.
+        /// </summary>
+        /// <returns> A list of strings.</returns>
+        public TFOutput GetSlotNames()
+        {
+            throw new NotImplementedException();
+
+            // return sorted(self._slots.keys())
+        }
+
+        /// <summary>
+        /// Asserts tensor has valid type (see `_valid_dtypes`).
+        /// </summary>
+        /// <param name="tensor"></param>
+        void AssertValidDType(TFOutput tensor)
+        {
+            if (!m_validDTypes.Contains(tensor.OutputType))
+            {
+                throw new ArgumentException($"Invalid type {tensor.OutputType} expected: {string.Join(",", m_validDTypes)}");
+            }
+        }
+
+        /// <summary>
+        /// Create all slots needed by the variables.
+        /// 
+        /// No slots needed by default
+        /// 
+        /// </summary>
+        /// <param name="var_list">A list of `Variable` objects.</param>
+        protected virtual void CreateSlots(List<TFOutput> var_list)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Create all needed tensors before applying gradients.
+        /// This is called with the name_scope using the "name" that
+        /// users have chosen for the application of gradients.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual TFOutput Prepare()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Add ops to apply dense gradients to `var`.
+        /// </summary>
+        /// <param name="grad">A `Tensor`</param>
+        /// <param name="var">A `Variable` object.</param>
+        /// <returns>An `Operation`.</returns>
+        protected virtual TFOutput ApplyDense(TFOutput grad, TFOutput var)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        ///  Add ops to apply dense gradients to the variable `handle`.
+        /// </summary>
+        /// <param name="grad">a `Tensor` representing the gradient.</param>
+        /// <param name="handle">a `Tensor` of dtype `resource` which points to the variable
+        /// to be updated.</param>
+        /// <returns>An `Operation` which updates the value of the variable.</returns>
+        protected virtual TFOutput ResourceApplyDense(TFOutput grad, IntPtr handle)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Add ops to apply sparse gradients to `handle`, with repeated indices.
+        /// 
+        /// Optimizers which override this method must deal with repeated indices. See
+        /// the docstring of `_apply_sparse_duplicate_indices` for details.By default
+        /// the correct behavior, to sum non-unique indices and their associated
+        /// gradients, is enforced by first pre-processing `grad` and `indices` and
+        /// passing them on to `_resource_apply_sparse`. Optimizers which deal correctly
+        /// with duplicate indices may instead override this method to avoid the
+        /// overhead of summing.        
+        /// </summary>
+        /// <param name="grad"> a `Tensor` representing the gradient for the affected indices.</param>
+        /// <param name="handle">a `Tensor` of dtype `resource` which points to the variable
+        /// to be updated.</param>
+        /// <param name="indices"> a `Tensor` of integral type representing the indices for
+        /// which the gradient is nonzero.Indices may be repeated.</param>
+        /// <returns>An `Operation` which updates the value of the variable.</returns>
         protected virtual TFOutput ResourceApplySparseDuplicateIndices(TFOutput grad, IntPtr handle, int[] indices)
         {
             throw new NotImplementedException();
-            //return resource_variable_ops.resource_scatter_add(
-            //    handle.handle, indices, -grad * self._learning_rate);
+            //summed_grad, unique_indices = _deduplicate_indexed_slices(
+            //    values = grad, indices = indices)
+            //return self._resource_apply_sparse(summed_grad, handle, unique_indices)        
         }
 
-        protected abstract TFOutput ApplySparseDuplicateIndices(TFOutput grad, TFOutput var);
+        /// <summary>
+        /// Add ops to apply sparse gradients to the variable `handle`.
+        /// 
+        /// Similar to `_apply_sparse`, the `indices` argument to this method has been
+        /// de-duplicated.Optimizers which deal correctly with non-unique indices may
+        /// instead override `_resource_apply_sparse_duplicate_indices` to avoid this
+        /// overhead.
+        ///
+        /// </summary>
+        /// <param name="grad"> a `Tensor` representing the gradient for the affected indices.</param>
+        /// <param name="handle">a `Tensor` of dtype `resource` which points to the variable
+        /// to be updated.</param>
+        /// <param name="indices">a `Tensor` of integral type representing the indices for
+        /// which the gradient is nonzero.Indices are unique.</param>
+        /// <returns>An `Operation` which updates the value of the variable.</returns>
+        protected virtual TFOutput ResourceApplySparse(TFOutput grad, IntPtr handle, int[] indices)
+        {
+            throw new NotImplementedException();
+        }
 
-        protected abstract TFOutput Prepare();
+        /// <summary>
+        /// Add ops to apply sparse gradients to `var`, with repeated sparse indices.
+        /// 
+        /// Optimizers which override this method must deal with IndexedSlices objects
+        /// 
+        /// such as the following:
+        ///  
+        ///     IndexedSlicesValue(values=[1, 1], indices=[0, 0], dense_shape=[1])
+        /// 
+        /// The correct interpretation is:
+        ///   
+        ///     IndexedSlicesValue(values=[2], indices=[0], dense_shape=[1])
+        /// 
+        /// Many optimizers deal incorrectly with repeated indices when updating based
+        /// on sparse gradients(e.g.summing squares rather than squaring the sum, or
+        /// applying momentum terms multiple times). Adding first is always the correct
+        /// behavior, so this is enforced here by reconstructing the IndexedSlices to
+        /// have only unique indices, then calling _apply_sparse.
+        /// 
+        /// Optimizers which deal correctly with repeated indices may instead override
+        /// this method to avoid the overhead of summing indices.
+        /// 
+        /// </summary>
+        /// <param name="grad">IndexedSlices</param>
+        /// <param name="var"> A `Variable` object.</param>
+        /// <returns></returns>
+        protected virtual TFOutput ApplySparseDuplicateIndices(TFOutput grad, TFOutput var)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Add ops to apply sparse gradients to `var`.
+        ///
+        /// The IndexedSlices object passed to `grad` in this function is by default
+        /// pre-processed in `_apply_sparse_duplicate_indices` to remove duplicate
+        /// indices(see its docstring for details). Optimizers which can tolerate or
+        /// have correct special cases for duplicate sparse indices may override
+        /// `_apply_sparse_duplicate_indices` instead of this function, avoiding that
+        /// overhead.        
+        ///
+        /// </summary>
+        /// <param name="grad"> `IndexedSlices`, with no repeated indices.</param>
+        /// <param name="var">A `Variable` object.</param>
+        /// <returns>An `Operation`.</returns>
+        protected virtual TFOutput ApplySparse(TFOutput grad, TFOutput var)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Do what is needed to finish the update.
+        /// This is called with the `name_scope` using the "name" that
+        /// users have chosen for the application of gradients.
+        /// </summary>
+        /// <param name="update_ops">List of `Operation` objects to update variables.  This list
+        /// contains the values returned by the `_apply_dense()` and
+        /// `_apply_sparse()` calls.</param>
+        /// <param name="name_scope">String.Name to use for the returned operation.</param>
+        /// <returns>The operation to apply updates.</returns>
+        protected virtual TFOutput Finish(List<TFOutput> update_ops, string name_scope)
+        {
+            throw new NotImplementedException();
+            //    return control_flow_ops.group(* update_ops, name= name_scope)
+        }
+
+        #region Utility methods for subclasses
 
         //public static def _get_processor(v)
         //{
@@ -268,16 +480,6 @@ namespace TensorFlowSharp.Training
         //  raise NotImplementedError("Trying to optimize unsupported type ", v)
         //}
 
-        /// <summary>
-        /// Asserts tensor has valid type (see `_valid_dtypes`).
-        /// </summary>
-        /// <param name="tensor"></param>
-        void AssertValidDType(TFOutput tensor)
-        {
-            if(!m_validDTypes.Contains(tensor.OutputType))
-            {
-                throw new ArgumentException($"Invalid type {tensor.OutputType} expected: {string.Join(",", m_validDTypes)}");
-            }
-        }
+        # endregion
     }
 }
