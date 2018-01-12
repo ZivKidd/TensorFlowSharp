@@ -75,6 +75,7 @@
     <Compile Include="Training\GraphKey.cs" />
     <Compile Include="Training\IOptimizableParameter.cs" />
     <Compile Include="Training\Optimizer.cs" />
+    <Compile Include="Training\SGD.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Packaging">
