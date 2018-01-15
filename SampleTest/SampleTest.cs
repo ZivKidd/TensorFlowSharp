@@ -349,28 +349,27 @@ namespace SampleTest
 
 			var t = new MainClass ();
 			t.LinearRegression ();
-			//t.TestParametersWithIndexes ();
-			//t.AddControlInput ();
-			//t.TestImportGraphDef ();
-			//t.TestSession ();
-			//t.TestOperationOutputListSize ();
-			//t.TestVariable ();
+			t.TestParametersWithIndexes ();
+			t.AddControlInput ();
+			t.TestImportGraphDef ();
+			t.TestSession ();
+			t.TestOperationOutputListSize ();
+			t.TestVariable ();
 
-			//// Current failing test
-			//t.TestOutputShape ();
-			////t.AttributesTest ();
-			//t.WhileTest ();
+			// Current failing test
+			t.TestOutputShape ();
+			//t.AttributesTest ();
+			t.WhileTest ();
 
-			////var n = new Mnist ();
-			////n.ReadDataSets ("/Users/miguel/Downloads", numClasses: 10);
+			//var n = new Mnist ();
+			//n.ReadDataSets ("/Users/miguel/Downloads", numClasses: 10);
 
-			//t.BasicConstantOps ();
-			//t.BasicVariables ();
-			//t.BasicMultidimensionalArray ();
-			//t.BasicMatrix ();
+			t.BasicConstantOps ();
+			t.BasicVariables ();
+			t.BasicMultidimensionalArray ();
+			t.BasicMatrix ();
 
-			//t.NearestNeighbor ();
-
+			t.NearestNeighbor ();
 		}
 	}
 }
