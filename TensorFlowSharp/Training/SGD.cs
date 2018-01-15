@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using TensorFlow;
 
 namespace TensorFlowSharp.Training
@@ -28,28 +30,28 @@ namespace TensorFlowSharp.Training
         /// <param name="loss"></param>
         /// <param name="graph"></param>
         /// <returns></returns>
-        public TFOutput Minimize(TFOutput loss, TFGraph graph) // extend with necesarry inputs
+        public TFOutput[] Minimize(TFOutput loss, TFGraph graph) // extend with necesarry inputs
         {
             // loss
             var y = new TFOutput[] { loss };
 
-            // get trainable parameters
-            var x = new TFOutput[0]; // TODO: find trainable parameters
+			// get trainable parameters
+			var x = graph.GetTrainableVariables().Select(v => v.VariableOp).ToArray();
 
             // get gradients
             var delta = graph.AddGradients(y, x);
 
-            if(y.Length != x.Length)
+            if(x.Length != delta.Length)
             { throw new InvalidOperationException($"variable length: {x.Length} differs from gradient length: {delta.Length}"); }
 
-            // update trainable parameters
+			// update trainable parameters
+			var ops = new TFOutput[y.Length];
             for (int i = 0; i < y.Length; i++)
             {
-                graph.ResourceApplyGradientDescent(x[i], graph.Const(m_learningRate), delta[i],
-                    m_useLocking);
+				ops[i] = new TFOutput(graph.ResourceApplyGradientDescent(x[i], graph.Const(m_learningRate), delta[i], m_useLocking));
             }
-            
-            throw new NotImplementedException();
+
+			return ops;
         }
     }
 }

@@ -161,6 +161,16 @@ namespace TensorFlow
 		List<Variable> trainable_variables;
 
 		/// <summary>
+		/// Gets the list of trainable variables.
+		/// </summary>
+		/// <returns></returns>
+		internal List<Variable> GetTrainableVariables()
+		{
+			return trainable_variables;
+		}
+
+
+		/// <summary>
 		/// Registers a specified variable as an initialization variable.
 		/// </summary>
 		/// <param name="variable">Variable to register.</param>

@@ -307,7 +307,7 @@ namespace SampleTest
 
                 // work in progress.
 
-                var optimizer = new GradientDescentOptimizer(learning_rate).Minimize(cost);
+                var optimizer = new SGD(learning_rate).Minimize(cost, g);
 
                 //var init = g.GetGlobalVariablesInitializer();
                 //s.GetRunner().Run(init);
@@ -318,14 +318,12 @@ namespace SampleTest
                 {
                     foreach (var observation in observations)
                     {
-                        runner
-                        .AddInput(X, observation.X)
-                        .AddInput(Y, observation.Y)
-                        .Run(optimizer);
-                    }
 
-                    // Display logs per epoch step
-                    if ((epoch + 1) % display_step == 0)
+						s.Run (optimizer, new TFTensor [] { observation.X, observation.Y }, null);
+					}
+
+					// Display logs per epoch step
+					if ((epoch + 1) % display_step == 0)
                     {
                         var c = runner
                             .AddInput(X, train_x)
@@ -351,27 +349,27 @@ namespace SampleTest
 
 			var t = new MainClass ();
 			t.LinearRegression ();
-			t.TestParametersWithIndexes ();
-			t.AddControlInput ();
-			t.TestImportGraphDef ();
-			t.TestSession ();
-			t.TestOperationOutputListSize ();
-			t.TestVariable ();
+			//t.TestParametersWithIndexes ();
+			//t.AddControlInput ();
+			//t.TestImportGraphDef ();
+			//t.TestSession ();
+			//t.TestOperationOutputListSize ();
+			//t.TestVariable ();
 
-			// Current failing test
-			t.TestOutputShape ();
-			//t.AttributesTest ();
-			t.WhileTest ();
+			//// Current failing test
+			//t.TestOutputShape ();
+			////t.AttributesTest ();
+			//t.WhileTest ();
 
-			//var n = new Mnist ();
-			//n.ReadDataSets ("/Users/miguel/Downloads", numClasses: 10);
+			////var n = new Mnist ();
+			////n.ReadDataSets ("/Users/miguel/Downloads", numClasses: 10);
 
-			t.BasicConstantOps ();
-			t.BasicVariables ();
-			t.BasicMultidimensionalArray ();
-			t.BasicMatrix ();
+			//t.BasicConstantOps ();
+			//t.BasicVariables ();
+			//t.BasicMultidimensionalArray ();
+			//t.BasicMatrix ();
 
-			t.NearestNeighbor ();
+			//t.NearestNeighbor ();
 
 		}
 	}
