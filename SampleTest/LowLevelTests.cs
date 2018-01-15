@@ -250,7 +250,7 @@ namespace SampleTest
 			static int counter;
 			public TFStatus Status;
 			TFGraph graph;
-			TFOperationDesc desc;
+			//TFOperationDesc desc;
 
 			public AttributeTest ()
 			{
@@ -281,7 +281,7 @@ namespace SampleTest
 			var meta = op.GetAttributeMetadata (name);
 			Assert (meta.IsList == (expectedListSize >= 0 ? true : false));
 			Assert (expectedListSize == meta.ListSize);
-			Assert (expectedTotalSize == expectedTotalSize);
+			Assert (expectedTotalSize == meta.TotalSize);
 			Assert (expectedType == meta.Type);
 		}
 
@@ -331,7 +331,7 @@ namespace SampleTest
 					runner.AddTarget (noop);
 					runner.Run ();
 					throw new Exception ("This should have thrown an exception");
-				} catch (Exception e) {
+				} catch (Exception) {
 					Console.WriteLine ("Success, got the expected exception when using tensorflow control inputs to assert");
 				}
 			}
